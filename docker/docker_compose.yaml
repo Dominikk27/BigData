@@ -1,0 +1,111 @@
+services:
+  #KAFKA
+  kafka:
+    image: apache/kafka:4.1.0 
+    container_name: kafka
+    ports:
+      - "9092:9092" # INTERNAL COMM
+      - "9093:9093" # INTERNAL CONTROLLER
+      - "9094:9094" # EXTERNAL
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker, controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: TRUE
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - kafka_log:/var/lib/kafka/log
+    restart: unless-stopped
+    networks:
+      - bigData
+  
+  #RED PANDA
+  console:
+    image: redpandadata/console:latest
+    container_name: redpanda-console
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      - kafka
+    restart: unless-stopped
+    networks:
+      - bigData
+  
+  #SPARK MASTER
+  sparkMaster:
+    image: apache/spark-py
+    container_name: sparkMaster
+    user: root
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+    environment:
+      SPARK_MASTER_HOST: sparkMaster
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+      SPARK_LOG_DIR: /opt/spark/logs
+      SPARK_LOCAL_DIRS: /opt/spark/work
+      SPARK_DAEMON_MEMORY: 1g
+      SPARK_PUBLIC_DNS: localhost
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - spark_data:/opt/spark/work
+    networks:
+      - bigData
+    restart: unless-stopped
+
+  #SPARK WORKER
+  sparkWorker:
+    image: apache/spark-py
+    container_name: sparkWorker
+    user: root
+    depends_on:
+      - sparkMaster
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://sparkMaster:7077"]
+    environment:
+      SPARK_MASTER_HOST: sparkMaster
+      SPARK_MASTER_PORT: 7077
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_WORKER_PORT: 7078
+      SPARK_WORKER_WEBUI_PORT:  8082
+      SPARK_LOG_DIR: /opt/spark/logs
+      SPARK_WORKER_DIR: /opt/spark/work
+      SPARK_PUBLIC_DNS: localhost
+    volumes:
+      - spark_data:/opt/spark/work
+    ports:
+      - "8082:8082"
+    networks:
+      - bigData
+    restart: unless-stopped   
+  
+  #GRAFANA
+  grafana:
+    image: grafana/grafana:main-ubuntu
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - bigData
+    restart: unless-stopped
+
+    
+networks:
+  bigData:
+    driver: bridge
+
+
+volumes:
+  # KAFKA
+  kafka_data:
+  kafka_log:
+  # SPARK
+  spark_data:
+  spark_scripts:
