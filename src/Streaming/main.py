@@ -1,9 +1,6 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField
+from pyspark.sql.types import StructType, StructField, FloatType
 from pyspark.sql.functions import from_json, col
-
-from utils.DataStruct import SENSOR_DATA_STRUCT, SPARK_SCHEMA_STRUCT
-
 
 def buildSparkSession():
     return (
@@ -17,7 +14,7 @@ def buildSparkSession():
 def main():
     spark = buildSparkSession()
 
-    # KAFKA INPUT STREAM
+    # Kafka input stream
     df = (
         spark.readStream
         .format("kafka")
@@ -29,22 +26,15 @@ def main():
 
     json_df = df.selectExpr("CAST(value AS STRING)")
 
-
-    # DATA STURUCTURE SCHEMA
     schema = StructType([
-        # StructField("averageChlorophyll", FloatType()),
-        # StructField("heightRate", FloatType()),
-        # StructField("averageWeightWet", FloatType()),
-        # StructField("averageDryWeight", FloatType())
-        # StructField("averageLeafArea", FloatType()),
-        # StructField("averageLeafCount", FloatType()),
-        # StructField("averageRootDiameter", FloatType()),
-        StructField(name, SPARK_SCHEMA_STRUCT[dataType], True)
-        for name, dataType in SENSOR_DATA_STRUCT.items()
-
+        StructField("averageChlorophyll", FloatType()),
+        StructField("heightRate", FloatType()),
+        StructField("averageWeightWet", FloatType()),
+        StructField("averageLeafArea", FloatType()),
+        StructField("averageLeafCount", FloatType()),
+        StructField("averageRootDiameter", FloatType()),
+        StructField("averageDryWeight", FloatType())
     ])
-
-    print(schema)
 
     parsed = json_df.select(from_json(col("value"), schema).alias("data")).select("data.*")
 
@@ -56,7 +46,7 @@ def main():
         .start()
     )
 
-    print("STREAM STARTED! LISTENING FOR DATA...")
+    print("Streaming beží a prijíma Kafka dáta...")
     query.awaitTermination()
 
 if __name__ == "__main__":

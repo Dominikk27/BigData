@@ -1,10 +1,18 @@
 import pandas
 import time
-from producers import produceData
+import sys, os
+
+from Producers.producers import produceData
+
+from utils.DataStruct import SENSOR_DATA_STRUCT   
 
 import logging
 
-TOPIC = "TEST_TOPIC"
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+
+
+TOPIC = "SENSOR_DATA"
 USE_COLS = ["ID", "averageChlorophyll", "heightRate", "averageWeightWet", "averageLeafArea", "averageLeafCount", "averageRootDiameter", "averageDryWeight"]
 
 logger = logging.getLogger("READ-DATA Logger")
@@ -16,13 +24,7 @@ def readCSV():
             index_col = "ID",
             usecols = USE_COLS,
             dtype={
-                'averageChlorophyll': 'Float64',
-                'heightRate': 'Float64',
-                'averageWeightWet': 'Float64',
-                'averageLeafArea': 'Float64',
-                'averageLeafCount': 'Float64',
-                'averageRootDiameter': 'Float64',
-                'averageDryWeight': 'Float64'   
+                  name: 'Float64' for name in SENSOR_DATA_STRUCT.keys()
             }
         )
     except Exception as e:

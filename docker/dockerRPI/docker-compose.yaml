@@ -12,7 +12,7 @@ services:
       KAFKA_PROCESS_ROLES: broker, controller
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://192.168.0.64:9094 # EDIT TO HOST IP
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: TRUE
@@ -39,7 +39,7 @@ services:
   
   #SPARK MASTER
   sparkMaster:
-    image: apache/spark-py
+    image: apache/spark:4.1.0-preview3-python3
     container_name: sparkMaster
     user: root
     command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
@@ -54,22 +54,26 @@ services:
     ports:
       - "7077:7077"
       - "8080:8080"
+    depends_on:
+      - kafka
     volumes:
-      - spark_data:/opt/spark/work
+      - ./spark_data:/opt/spark/work
+      - ./spark_scripts:/opt/spark/scripts
+      - spark_logs:/opt/spark/logs
     networks:
       - bigData
     restart: unless-stopped
 
   #SPARK WORKER
   sparkWorker:
-    image: apache/spark-py
+    image: apache/spark:4.1.0-preview3-python3
     container_name: sparkWorker
     user: root
     depends_on:
       - sparkMaster
     command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://sparkMaster:7077"]
     environment:
-      SPARK_MASTER_HOST: sparkMaster
+      SPARK_MASTER_HOST: spark://sparkMaster:7077
       SPARK_MASTER_PORT: 7077
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
@@ -79,7 +83,9 @@ services:
       SPARK_WORKER_DIR: /opt/spark/work
       SPARK_PUBLIC_DNS: localhost
     volumes:
-      - spark_data:/opt/spark/work
+      - ./spark_data:/opt/spark/work
+      - ./spark_scripts:/opt/spark/scripts
+      - spark_logs:/opt/spark/logs
     ports:
       - "8082:8082"
     networks:
@@ -96,16 +102,15 @@ services:
       - bigData
     restart: unless-stopped
 
-    
 networks:
   bigData:
     driver: bridge
-
 
 volumes:
   # KAFKA
   kafka_data:
   kafka_log:
   # SPARK
-  spark_data:
-  spark_scripts:
+  #spark_data:
+  #spark_scripts:
+  spark_logs:

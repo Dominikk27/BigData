@@ -3,8 +3,6 @@ import json
 import logging
 
 
-
-
 producer_config = {
     'bootstrap_servers': "localhost:9094",
     'client_id': 'TestProducer',
