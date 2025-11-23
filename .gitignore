@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 *.so
 *.egg-info/
 .env
@@ -27,12 +28,22 @@ Scripts/
 Thumbs.db
 
 
-<<<<<<< HEAD
-=======
 #dataset
 dataset/
 .dataset/
 
->>>>>>> e7ce581268781f7085f67818e1840af85e8a6876
 # Kafka
 kafka/
+
+
+# ENV
+.env
+
+#Docker
+docker/dockerPC/
+docker/dockerRPI/
+
+
+
+docker/spark_checkpoints/
+docker/imgExp

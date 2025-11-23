@@ -3,8 +3,6 @@ import json
 import logging
 
 
-
-
 producer_config = {
     'bootstrap_servers': "localhost:9094",
     'client_id': 'TestProducer',
@@ -23,9 +21,15 @@ producer = KafkaProducer(**producer_config)
 
 def produceData(topic: str, key: str, data: dict):
     try:
-        future = producer.send(topic, key=key, value=data)
+        future = producer.send(
+            topic, 
+            key=key, 
+            value=data
+        )
         future.get(timeout=10)
         producer.flush()
+
+        #print(data);
         logger.info(f"Data: {data} successfully sent!")
     except Exception as e:
         logger.error(f"Error: {e}");
