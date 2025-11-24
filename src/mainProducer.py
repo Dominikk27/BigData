@@ -1,50 +1,80 @@
-from kafka.admin import NewTopic, KafkaAdminClient
-from Producers.readData import readCSV
-import logging
+import json
+import threading
+import time
 
-logging.basicConfig(
-    level=logging.INFO
-)
+from MQTT import MQTTPublisher
+from utils.ReadFile import read_csv
 
-logger = logging.getLogger("[MAIN]")    
 
-def createTopic(topic_name):
-    TOPIC_NAME = topic_name
-    adminClient = KafkaAdminClient(
-        bootstrap_servers  = "localhost:9094",
-        client_id = "Topic_Creator"
-    )
+def device_sim(device_id, rows, BROKER, TOPIC, stop_sim):
+    publisher = MQTTPublisher(BROKER, [TOPIC])
+    publisher.on_connect()
+
+    for ID, row in rows.iterrows():
+
+        if stop_sim.is_set():
+            print(f"[DEVICE {device_id}] Stopping...")
+            return
+
+        data = row.to_dict()
+        data = {k: round(v, 2) if isinstance(v, float) 
+                else v for k, v in data.items()
+                }
+        
+        data["device_id"] = device_id
+        json_data = json.dumps(data)
+
+        try:
+            publisher.send(TOPIC, json_data)
+        except Exception as e:
+            print(f"[DEVICE {device_id}] Publisher error!")
+            raise e
+
+        time.sleep(1)
+
+def main():
+    BROKER = "host.docker.internal"
+    TOPIC = "test/topic"
+    csvData = read_csv('../dataset/agroDataset.csv')
+
+    DEVICE_COUNT = 5
+
+    stop_sim = threading.Event()
+
+    split_data = [
+        csvData.iloc[i::DEVICE_COUNT]
+        for i in range(DEVICE_COUNT)
+    ]
+
+    threads = []
+
+    for deviceID in range(DEVICE_COUNT):
+        t = threading.Thread(
+            target=device_sim,
+            args=(
+                deviceID, 
+                split_data[deviceID], 
+                BROKER, 
+                TOPIC,
+                stop_sim
+                )
+        )
+        threads.append(t)
+        t.start()
 
     try:
-        metadata = adminClient.list_topics()
-        if topic_name not in metadata:
-            topic = NewTopic(
-                name = TOPIC_NAME,
-                num_partitions = 3,
-                replication_factor = 1
-            )
+        while any(t.is_alive() for t in threads):
+            for t in threads:
+                t.join(timeout=0.2)
 
-            fs = adminClient.create_topics(
-                    new_topics = [topic],
-                    validate_only = False
-                )
-            
-            for topic, future in fs.items():
-                try: 
-                    future.result()
-                    logger.info(f"Topic: {TOPIC_NAME} has been successfully created!")
-                except Exception as e:
-                    logger.error(f"Error: {e}")
-        else:
-            logger.info(f"Topic {topic_name} already exists!");
-            
+    except KeyboardInterrupt:
+        print("CLOSING APP!")
+        stop_sim.set()
+        for t in threads:
+            t.join()
+        
+    print("All Devices finished jobs") 
 
-    except Exception as e:
-        logger.error(f"Error: {e}")
-
-    finally:
-        adminClient.close()
 
 if __name__ == "__main__":
-    createTopic("SENSOR_DATA")
-    readCSV()
+    main()

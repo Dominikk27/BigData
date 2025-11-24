@@ -8,10 +8,13 @@ services:
       - "9093:9093" # INTERNAL CONTROLLER
       - "9094:9094" # EXTERNAL
     environment:
+      KAFKA_KRAFT_MODE_ENABLED: "true"
+      KAFKA_CLUSTER_ID: "RkVBR0lORVItQ0xVU1RFRS0xMjM0NTY3ODkw" # RANDOM UUID
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker, controller
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094 # EDIT TO HOST IP
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
@@ -60,6 +63,7 @@ services:
       - ./spark_data:/opt/spark/work
       - ../../src/Streaming:/opt/spark/scripts
       - spark_logs:/opt/spark/logs
+      - ./spark_checkpoints:/opt/spark/checkpoints
     networks:
       - bigData
     restart: unless-stopped
@@ -81,11 +85,12 @@ services:
       SPARK_WORKER_WEBUI_PORT:  8082
       SPARK_LOG_DIR: /opt/spark/logs
       SPARK_WORKER_DIR: /opt/spark/work
-      SPARK_PUBLIC_DNS: loclahost
+      SPARK_PUBLIC_DNS: localhost
     volumes:
       - ./spark_data:/opt/spark/work
       - ../../src/Streaming:/opt/spark/scripts
       - spark_logs:/opt/spark/logs
+      - ./spark_checkpoints:/opt/spark/checkpoints
     ports:
       - "8082:8082"
     networks:
@@ -98,6 +103,21 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    networks:
+      - bigData
+    restart: unless-stopped
+  
+  mqttBroker:
+    image: eclipse-mosquitto:2.0.22-openssl
+    container_name: mqttBroker
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
     networks:
       - bigData
     restart: unless-stopped

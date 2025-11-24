@@ -13,7 +13,20 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 
 TOPIC = "SENSOR_DATA"
+<<<<<<< HEAD
 USE_COLS = ["ID", "averageChlorophyll", "heightRate", "averageWeightWet", "averageLeafArea", "averageLeafCount", "averageRootDiameter", "averageDryWeight"]
+=======
+USE_COLS = [
+    "ID", 
+    "averageChlorophyll", 
+    "heightRate", 
+    "averageWeightWet", 
+    "averageLeafArea", 
+    "averageLeafCount", 
+    "averageRootDiameter", 
+    "averageDryWeight"
+]
+>>>>>>> 8a20b01 (added MQTT producer and consumer... Light refactor)
 
 logger = logging.getLogger("READ-DATA Logger")
 
@@ -35,8 +48,9 @@ def readCSV():
     
     for ID, row in file.iterrows():
         #print(row.to_dict())
-        data = row.to_dict()
+
         
+        data = row.to_dict()
         data = {k: round(v, 4) if isinstance(v, float) else v for k, v in data.items()}
 
         try:
