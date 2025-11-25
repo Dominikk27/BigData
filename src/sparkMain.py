@@ -98,7 +98,7 @@ def main():
 
     dataStruct = createDataSchema()
 
-    readDF = readDataFrame(sparkSession, "localhost:9094", "SENSOR_DATA")
+    readDF = readDataFrame(sparkSession, "localhost:9094", "mqtt_topic")
 
 
     raw_df = readDF.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")

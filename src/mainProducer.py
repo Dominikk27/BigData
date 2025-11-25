@@ -5,7 +5,7 @@ import time
 from MQTT import MQTTPublisher
 from utils.ReadFile import read_csv
 
-
+#
 def device_sim(device_id, rows, BROKER, TOPIC, stop_sim):
     publisher = MQTTPublisher(BROKER, [TOPIC])
     publisher.on_connect()
@@ -32,12 +32,12 @@ def device_sim(device_id, rows, BROKER, TOPIC, stop_sim):
 
         time.sleep(1)
 
-def main():
-    BROKER = "host.docker.internal"
-    TOPIC = "test/topic"
-    csvData = read_csv('../dataset/agroDataset.csv')
+def start_IoT_simulation(DEVICE_COUNT, BROKER, TOPIC, DATASET_PATH):
+    BROKER = BROKER
+    TOPIC = TOPIC
+    csvData = read_csv(DATASET_PATH)
 
-    DEVICE_COUNT = 5
+    DEVICE_COUNT = DEVICE_COUNT
 
     stop_sim = threading.Event()
 
@@ -73,7 +73,15 @@ def main():
         for t in threads:
             t.join()
         
-    print("All Devices finished jobs") 
+    print("All Devices finished jobs")
+
+def main():
+    start_IoT_simulation(
+        5, 
+        "host.docker.internal", 
+        "test/topic", 
+        "../dataset/agroDataset.csv"
+    )
 
 
 if __name__ == "__main__":
