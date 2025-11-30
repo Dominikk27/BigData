@@ -15,7 +15,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
       KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094 # EDIT TO HOST IP
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://host.docker.internal:9094, # EDIT TO HOST IP
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: TRUE
@@ -106,7 +106,8 @@ services:
     networks:
       - bigData
     restart: unless-stopped
-  
+
+ #MQTT BROKER 
   mqttBroker:
     image: eclipse-mosquitto:2.0.22-openssl
     container_name: mqttBroker
@@ -121,6 +122,21 @@ services:
     networks:
       - bigData
     restart: unless-stopped
+  
+  postgreSQL:
+    image: timescale/timescaledb:latest-pg17
+    container_name: postgreSQL
+    environment:
+      POSTGRES_USER: admin 
+      POSTGRES_PASSWORD: admin1337!
+      POSTGRES_DB: bigdata_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bigData
+    restart: unless-stopped
 
 networks:
   bigData:
@@ -130,7 +146,11 @@ volumes:
   # KAFKA
   kafka_data:
   kafka_log:
+  
   # SPARK
   #spark_data:
   #spark_scripts:
   spark_logs:
+
+  # POSTGRESQL
+  postgres_data:

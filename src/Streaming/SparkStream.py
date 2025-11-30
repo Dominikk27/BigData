@@ -23,6 +23,8 @@ class SparkStream:
                 SparkSession.builder
                 .master(f"{self.masterURL}:{self.masterPORT}") #spark://host.docker.internal:7077
                 .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.1")
+                .config("spark.network.timeout", "600s") 
+                .config("spark.executor.heartbeatInterval", "30s") 
                 .appName(self.appName)
                 .getOrCreate()
             )
@@ -49,8 +51,11 @@ class SparkStream:
                 self.sparkSession.readStream
                 .format("kafka")
                 .option("kafka.bootstrap.servers", self.kafkaBroker)
+                .option("kafka.security.protocol", "PLAINTEXT")
+                .option("kafka.sasl.mechanism", "PLAIN")
                 .option("subscribe", self.topicName)
                 .option("startingOffsets", "earliest")
+                .option("failOnDataLoss", "false")
                 .load()
             )
         except Exception as e:
@@ -62,20 +67,34 @@ class SparkStream:
 
     # PROCESS STREAM DATA
     def processStream(self, dataFrame):
-        raw_data = dataFrame.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-        parsed_data = raw_data.withColumn("value", from_json("value", schema=self.dataStruct)) \
-        .select(col("key"), col("value"))
+        #raw_data = dataFrame.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+        #parsed_data = raw_data.withColumn("value", from_json("value", schema=self.dataStruct)) \
+        #.select(col("key"), col("value"))
+        
+        out = dataFrame.selectExpr("CAST(value AS STRING)")
 
-        return parsed_data
+        raw_data = dataFrame.selectExpr(
+            "CAST(key AS STRING)",
+            "CAST(value AS STRING)"
+        )
+
+        parsed_data = raw_data.withColumn(
+            "parsed",
+            from_json(col("value"), self.dataStruct)
+        ).select("key", "parsed.*")
+        
+        return out
     
 
     def writeStream(self, dataFrame):
         try:
             query = (
                 dataFrame.writeStream
-                .outputMode("append")
                 .format("console")
                 .option("truncate", False)
+                .option("checkpointLocation", "../../docker/dockerPC/spark_checkpoints") ## <-- NEED TO FIX
+                .option("startingOffsets", "earliest") 
+                .option("failOnDataLoss", "false")      
                 .start()
             )
         except Exception as e:
@@ -87,8 +106,18 @@ class SparkStream:
 
 
 
-def main():
+""" def main():
     print("Hello World Stream!")
+    spark = SparkStream("spark://host.docker.internal",7077,"localhost:9094","testApp","mqtt_topic")
+    spark.buildSparkSession()
+    spark.createDataStruct()
+
+    dataFrame = spark.readDataFrame()
+    parsed_data = spark.processStream(dataFrame)
+
+    query = spark.writeStream(parsed_data)
+    query.awaitTermination()
+    
 
 if __name__ == "__main__":
-    main()
+    main() """

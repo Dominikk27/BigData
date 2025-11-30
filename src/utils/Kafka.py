@@ -1,7 +1,7 @@
 import json
 
 producer_config = {
-    'bootstrap_servers': "localhost:9094",
+    'bootstrap_servers': "host.docker.internal:9094",
     'client_id': 'TestProducer',
     'compression_type': 'gzip',
     'batch_size': 20000,
@@ -15,7 +15,7 @@ producer_config = {
 
 
 consumer_config = {
-    'bootstrap_servers': "localhost:9094",
+    'bootstrap_servers': "host.docker.internal:9094",
     'client_id': "TestConsumer",
     'enable_auto_commit': True,
     'value_deserializer': lambda v: json.loads(v.decode('utf-8')),

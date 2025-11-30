@@ -3,6 +3,7 @@ from pyspark.sql.types import StructType, StructField, FloatType, IntegerType, S
 
 # DEFINE SENSOR DATA STRUCTURE
 SENSOR_DATA_STRUCT = {
+    "device_id": int,
     "averageChlorophyll": float,
     "heightRate": float,
     "averageWeightWet": float,
