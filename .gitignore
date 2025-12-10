@@ -36,14 +36,15 @@ dataset/
 kafka/
 
 
-# ENV
-.env
 
 #Docker
 docker/dockerPC/
 docker/dockerRPI/
-
-
-
 docker/spark_checkpoints/
 docker/imgExp
+
+
+# ENV
+.env
+
+
