@@ -11,7 +11,7 @@ def connect_database():
         print(f"Error connecting to database: {e}")
         return None
     
-def checkTable(connection, table_name):
+def check_table(connection, table_name):
     try:
         cursor = connection.cursor()
         cursor.execute(f"""
@@ -27,12 +27,12 @@ def checkTable(connection, table_name):
         else:
             print(f"Table {table_name} does not exist in the database.")
             print(f"Creating table {table_name}...")
-            createTable(connection, table_name)
+            create_table(connection, table_name)
     except postgres.Error as e:
         print(f"Error checking table in database {table_name}: {e}")
 
 
-def createTable(connection, table_name):
+def create_table(connection, table_name):
     try:
         cursor = connection.cursor()
         cursor.execute(f"""
@@ -48,3 +48,16 @@ def createTable(connection, table_name):
         print(f"Table {table_name} created successfully.")
     except postgres.Error as e:
         print(f"Error creating table {table_name}: {e}")
+
+
+def insert_data():
+    pass
+
+
+
+
+
+def close_connection(connection):
+    if connection:
+        connection.close()
+        print("Database connection closed.")
