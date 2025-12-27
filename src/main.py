@@ -1,9 +1,15 @@
-from Database.DatabaseManager import connect_database, check_table
+from Database.DatabaseManager import DatabaseManager
+
+from utils.Database.databaseConfig import devices_list
 
 
 def main():
-    db_conn = connect_database()
-    check_table(db_conn, "plants_metrics")
+    dbManager = DatabaseManager()
+    conn = dbManager.connect_database()
+    tableExist = dbManager.checkTable_existence("plant_metrics")
+    print(tableExist)
+
+    #check_table(db_conn, "plants_metrics")
 
 
 

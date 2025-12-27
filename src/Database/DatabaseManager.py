@@ -1,15 +1,6 @@
 import psycopg2 as postgres
 from utils.Database.databaseConfig import db_config
 
-
-def connect_database():
-    try:
-        connection = postgres.connect(**db_config)
-        print("Database connection established.")
-        return connection
-    except postgres.Error as e:
-        print(f"Error connecting to database: {e}")
-        return None
     
 def check_table(connection, table_name):
     try:
@@ -61,3 +52,60 @@ def close_connection(connection):
     if connection:
         connection.close()
         print("Database connection closed.")
+
+
+
+class DatabaseManager:
+    def __init__(self):
+        self.conn = None
+        self.cursor = None
+    
+
+    def connect_database(self):
+        try:
+            self.conn = postgres.connect(**db_config)
+            self.cursor = self.conn.cursor()
+            print("Database connection established.")
+            return self.conn
+        except postgres.Error as e:
+            print(f"Error connecting to database: {e}")
+            return None
+        
+    
+    def checkTable_existence(self, table_name):
+        if not self.cursor:
+            raise Exception("connection to db doesnt exist!")
+        
+        try:
+            self.cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                    AND table_name = %s                
+                );
+            """,(table_name, ))
+
+            exists = self.cursor.fetchone()[0]
+            if(exists):
+                print(f"{table_name} exists!")
+            else:
+                print(f"{table_name} doesnt exist!")
+                create_table(table_name)
+
+            return exists
+        except Exception as e:
+            print(f"Error while checking table '{table_name}': {e}")
+            raise e
+    
+
+    def create_table(self, table_name):
+        try:
+            print("Create table")
+            self.cursor.execute("""
+                CREATE TABLE %s (
+                    
+                )
+            """)
+        except Exception as e:
+            print(f"Error with creating table '{table_name}': {e}")
+            raise e

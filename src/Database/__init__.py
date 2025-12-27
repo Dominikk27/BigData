@@ -1,6 +1,4 @@
-from .DatabaseManager import connect_database, check_table
-
+from .DatabaseManager import DatabaseManager
 __all__ = (
-    "connect_database",
-    "check_table",
+    "DatabaseManager"
 )
