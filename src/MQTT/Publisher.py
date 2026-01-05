@@ -1,16 +1,26 @@
-import paho.mqtt.publish as publish
+import paho.mqtt.client as mqtt
 from typing import List
 
 class MQTTPublisher:
-    def __init__(self, broker: str, topics: List):
-        self.broker = broker
-        self.port = 1883
+    _instance = None
 
-    def on_connect(self):
-        print("Connected to broker: ", self.broker)
+    def __new__(cls, broker: str = "host.docker.internal", port: int = 1883):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.broker = broker
+            cls._instance.port = port
+            cls._instance.client = mqtt.Client()
+            cls._instance.client.on_connect = cls._instance._connect
+            cls._instance.client.connect(cls._instance.broker, cls._instance.port, 60)
+            cls._instance.client.loop_start()
+
+        return cls._instance
+
+    def _connect(self, client, userdata, flags, rc):
+        print(f"[MQTT CONNECTED] Broker: {self.broker}, result code: {rc}")
 
     def send(self, topic: str, message: str):
-        publish.single(topic, payload=message, hostname=self.broker, port=self.port)
+        self.client.publish(topic, message)
         print(f"[SENT] {topic}: {message}")
 
 

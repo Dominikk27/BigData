@@ -1,25 +1,36 @@
+import json
+import time
+
+from MQTT.Publisher import MQTTPublisher
+
 
 #===========================================
 # DEVICES
 #===========================================
 class Device:
     def __init__(self, device_name, device_type):
-        self.name = device_name
+        self.device_code = device_name
         self.device_type = device_type
+        self.topic = f"device/{self.device_code}"
         self.sensors = []
+
+        self.mqtt_publisher = MQTTPublisher()
+        
+
+
     
 
     def _build_sensor_name(self, 
                             measurement: str,
                             **extras
                         ):
-        parts = [self.name, self.device_type, measurement]
+        parts = [self.device_code, self.device_type, measurement]
 
         if 'depth' in extras and (extras['depth'], int) is not None:
             parts.append(str(extras['depth']))
     
         if 'location' in extras and extras['location'] is not None:
-            parts.append(str(extras['location']).lower())
+            parts.append(str(extras['location']))
 
         if 'reference' in extras and extras['reference'] is not None:
             parts.append("ref")
@@ -27,7 +38,7 @@ class Device:
         if 'index' in extras and extras['index'] is not None:
             parts.append(f"({extras['index']})")
         
-        return "_".join(parts)
+        return "_".join(parts).lower()
 
     def _build_extras(self, depth=None, location=None, reference=None, index=None):
         extras = {}
@@ -48,7 +59,7 @@ class Device:
 
     def add_sensors(
                 self, 
-                sensor_code,        # STR: UNIQUE IDENTIFICATOR ()
+                sensor_code,        # STR: UNIQUE IDENTIFICATOR
                 measurement_type,   # STR: TYPE OF MEASURED QUANTITY
                 unit,               # STR: UNIT OF MEASURED QUANTITY
                 depth_cm=None,      # INT: (NONE / DEPTH OF SENSOR IN CM)
@@ -61,6 +72,24 @@ class Device:
             "depth_cm": depth_cm,
             "extras": extras or {}
         })
+    
+
+    def start_device_simulation(self):
+        self.sim_running = True
+        self.mqtt_publisher.connect()
+
+        while self.sim_running:
+            for sensor in self.sensors:
+                payload = sensor.read()
+                payload["device_id"] = self.device_code
+                self.mqtt_publisher.send(self.topic, json.dumps(payload))
+            time.sleep(1)
+
+
+    def stop_device_simulation(self):
+        self.sim_running = False
+        self.mqtt_publisher.disconnect()
+
 
 #===========================================
 # LYSIMETER DEVICES
@@ -89,7 +118,7 @@ class LysimeterDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(), 
+            sensor_code=sensor_code, 
             measurement_type=measurement_type, 
             unit="kPa", 
             extras=extras
@@ -113,7 +142,7 @@ class LysimeterDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(), 
+            sensor_code=sensor_code, 
             measurement_type=measurement_type, 
             unit="degC", 
             extras=extras
@@ -137,7 +166,7 @@ class LysimeterDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(),
+            sensor_code=sensor_code,
             measurement_type=measurement_type,
             unit="mS/cm",
             extras=extras
@@ -161,7 +190,7 @@ class LysimeterDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(),
+            sensor_code=sensor_code,
             measurement_type=measurement_type,
             unit="%",
             extras=extras
@@ -649,7 +678,7 @@ class SchachtDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(),
+            sensor_code=sensor_code,
             measurement_type=measurement_type,
             unit="mS/cm",
             extras=extras
@@ -675,7 +704,7 @@ class SchachtDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(), 
+            sensor_code=sensor_code, 
             measurement_type=measurement_type, 
             unit="degC", 
             extras=extras
@@ -727,15 +756,25 @@ class SchachtDevice(Device):
         sensor_code = self._build_sensor_name(measurement_type, **extras)
 
         self.add_sensors(
-            sensor_code=sensor_code.lower(),
+            sensor_code=sensor_code,
             measurement_type=measurement_type,
             unit="%",
             extras=extras
         )
     
+""" def main():
+    dev = LysimeterDevice("TEST")
 
+    dev.add_tension_sensor(depth_cm=30, location="outside")
+    dev.add_temperature_sensor(depth_cm=30)
+    dev.add_battery_sensor()
 
-def main():
+    print("DEVICE:", dev.device_code)
+    print("SENSORS:")
+    for s in dev.sensors:
+        print(s) """
+
+def mainTest():
         
     URB_Lysimeter = LysimeterDevice("URB")
     URB_Lysimeter.add_tension_sensor(None, "outside", False)
@@ -785,13 +824,13 @@ def main():
     """ lys = LysimeterDevice("Test")
     lys.add_tension_sensor("tension", 30, "Outside", True) """
 
-    print (URB_Lysimeter.name)
+    print (URB_Lysimeter.device_code)
 
     for sensor in URB_Lysimeter.sensors:
         print(sensor)
 
     print ("---------------------")
-    print (SSA3_LYSimeter.name)
+    print (SSA3_LYSimeter.device_code)
 
     for sensor in SSA3_LYSimeter.sensors:
         print(sensor)
@@ -799,5 +838,5 @@ def main():
 
 
 
-if __name__ == "__main__":
-    main()
+""" if __name__ == "__main__":
+    main() """
