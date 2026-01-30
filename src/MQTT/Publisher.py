@@ -4,7 +4,9 @@ from typing import List
 class MQTTPublisher:
     _instance = None
 
-    def __new__(cls, broker: str = "host.docker.internal", port: int = 1883):
+    def __new__(cls, 
+                broker = "host.docker.internal", 
+                port = 1883):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.broker = broker

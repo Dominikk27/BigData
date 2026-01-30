@@ -7,25 +7,33 @@ db_config = {
 }  
 
 tables_structures = {
-    "devices":{
-        "id": "SERIAL PRIMARY KEY",
-        "device_code": "TEXT UNIQUE NOT NULL",
+    "devices": {
+        "device_id": "SERIAL PRIMARY KEY",
+        "device_code": "VARCHAR(50) UNIQUE NOT NULL",
         "device_type": "TEXT NOT NULL",
+        "created_at": "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
     },
-    "sensors":{
-        "id": "SERIAL PRIMARY KEY",
-        "device_id": "INT NOT NULL REFERENCES devices(id) ON DELETE CASCADE",
+    "sensors": {
+        "sensor_id": "SERIAL PRIMARY KEY",
+        "device_id": "INT NOT NULL REFERENCES devices(device_id) ON DELETE CASCADE",
         "sensor_code": "TEXT NOT NULL",
         "measurement_type": "TEXT NOT NULL",
         "unit": "TEXT NOT NULL",
         "depth_cm": "INT",
-        "extras": "JSONB"   
+        "extras": "JSONB",
+        "created_at": "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+        "UNIQUE": "(device_id, sensor_code)"
     },
-    "measurements":{
+    "measurements": {
         "time": "TIMESTAMPTZ NOT NULL",
-        "sensor_id": "INT NOT NULL REFERENCES sensors(id) ON DELETE CASCADE",
+        "sensor_id": "INT NOT NULL REFERENCES sensors(sensor_id) ON DELETE CASCADE",
         "value": "DOUBLE PRECISION",
         "status": "INT",
         "PRIMARY KEY": "(time, sensor_id)"
+    },
+    "test_table": {
+        "id": "SERIAL PRIMARY KEY",
+        "name": "TEXT NOT NULL",
+        "created_at": "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
     }
 }

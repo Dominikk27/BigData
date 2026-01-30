@@ -1,7 +1,9 @@
 import json
 import time
+import pandas as pd
 
 from MQTT.Publisher import MQTTPublisher
+from Database.Dataset import DeviceDataset
 
 
 #===========================================
@@ -14,7 +16,65 @@ class Device:
         self.topic = f"device/{self.device_code}"
         self.sensors = []
 
+        self.db_id = None
+
+        self.dataset = DeviceDataset(self.device_code)
+
         self.mqtt_publisher = MQTTPublisher()
+
+
+    ###############################################
+    ######### DATABASE INSERTION METHODS ##########
+    ###############################################
+    def sync_database(self, dbManager):
+        
+        self.db_id = dbManager.register_device(
+            device_code=self.device_code,
+            device_type=self.device_type
+        )
+
+        for sensor in self.sensors:
+            sensor_id = dbManager.register_sensor(
+                device_id=self.db_id,
+                sensor_code=sensor["sensor_code"],
+                measurement_type=sensor["measurement_type"],
+                unit=sensor["unit"],
+                depth_cm=sensor.get("depth_cm"),
+                extras=sensor.get("extras") 
+            )
+            sensor['db_id'] = sensor_id
+        
+    
+
+
+
+
+
+
+    def start_simulation(self):
+        print(f"[SIM START] {self.device_code}")
+
+        for row in self.dataset.iter_rows():
+
+            payload = {
+                "device_id": self.device_code,
+                "device_type": self.device_type,
+                "sensor_code": row["sensor_type"],
+                "timestamp": row["timestamp"].isoformat(),
+                "value": round(float(row["value"]), 2),
+            }
+
+            # voliteľné polia
+            if "depth_cm" in row and not pd.isna(row["depth_cm"]):
+                payload["depth_cm"] = int(row["depth_cm"])
+
+            if "sensor_index" in row and not pd.isna(row["sensor_index"]):
+                payload["sensor_index"] = int(row["sensor_index"])
+
+            self.mqtt_publisher.send(self.topic, json.dumps(payload))
+
+            time.sleep(1)
+
         
 
 

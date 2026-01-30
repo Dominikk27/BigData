@@ -1,0 +1,26 @@
+{
+  "URB": {
+    "type": "Lysimeter",
+    "sensors": [
+      {"name": "outside tension", "unit": "kPa", "depth": null, "location": "outside"},
+      {"name": "inside tension", "unit": "kPa", "depth": null, "location": "inside"},
+      {"name": "level", "unit": "cm", "depth": null, "location": null},
+      {"name": "percolation pump", "unit": "mV"},
+      {"name": "discharge (1)", "unit": "l", "index": 1}
+    ]
+  },
+  "SSA3": {
+    "type": "Lysimeter",
+    "sensors": [
+      {"name": "tension 30cm", "unit": "kPa", "depth": 30},
+      {"name": "vacuum 30cm", "unit": "kPa", "depth": 30},
+      {"name": "ump 30cm", "unit": "%", "depth": 30}
+    ]
+  },
+  "SSA4": {
+    "type": "Schacht",
+    "sensors": [
+      {"name": "UMP (1) 30cm", "unit": "%", "depth": 30, "index": 1}
+    ]
+  }
+}

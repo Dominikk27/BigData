@@ -9,13 +9,18 @@ from Database.Devices import LysimeterDevice
 
 
 def main():
-    #dbManager = DatabaseManager()
+    dbManager = DatabaseManager()
+    dbConn = DatabaseManager.connect_database(dbManager)
+    dbManager.init_database(dbConn)
+
+
     #conn = dbManager.connect_database()
     #tableExist = dbManager.checkTable_existence("plant_metrics")
     #print(tableExist)
 
     #check_table(db_conn, "plants_metrics")
 
+    
     URB_Lysimeter = LysimeterDevice("URB")
     URB_Lysimeter.add_tension_sensor(None, "outside", False)
     URB_Lysimeter.add_tension_sensor(None, "inside", False)
@@ -37,11 +42,16 @@ def main():
     print("DEVICE:", URB_Lysimeter.device_code)
     print("SENSORS:")
     for s in URB_Lysimeter.sensors:
-        print(s)
+        print(s)  
+    
+    URB_Lysimeter.sync_database(dbManager)
     
 
-    URB_Lysimeter.mqtt_publisher.send("device/URB", "Hello world")
+    
 
+    #URB_Lysimeter.mqtt_publisher.send("device/URB", "Hello world")
+
+    #URB_Lysimeter.start_simulation()
 
 
 if __name__ == "__main__":

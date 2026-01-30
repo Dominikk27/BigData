@@ -1,59 +1,7 @@
 import psycopg2 as postgres
-from utils.Database.databaseConfig import db_config
+import json
 
-    
-def check_table(connection, table_name):
-    try:
-        cursor = connection.cursor()
-        cursor.execute(f"""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = '{table_name}'
-            );
-        """)
-        exists = cursor.fetchone()[0]
-        if exists:
-            print(f"Table {table_name} exists in the database.")
-        else:
-            print(f"Table {table_name} does not exist in the database.")
-            print(f"Creating table {table_name}...")
-            create_table(connection, table_name)
-    except postgres.Error as e:
-        print(f"Error checking table in database {table_name}: {e}")
-
-
-def create_table(connection, table_name):
-    try:
-        cursor = connection.cursor()
-        cursor.execute(f"""
-            CREATE TABLE {table_name} (
-                id SERIAL PRIMARY KEY,
-                plant_id INT NOT NULL,
-                metric_type VARCHAR(50) NOT NULL,
-                metric_value FLOAT NOT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        connection.commit()
-        print(f"Table {table_name} created successfully.")
-    except postgres.Error as e:
-        print(f"Error creating table {table_name}: {e}")
-
-
-def insert_data():
-    pass
-
-
-
-
-
-def close_connection(connection):
-    if connection:
-        connection.close()
-        print("Database connection closed.")
-
-
+from utils.Database.databaseConfig import db_config, tables_structures
 
 class DatabaseManager:
     def __init__(self):
@@ -71,41 +19,126 @@ class DatabaseManager:
             print(f"Error connecting to database: {e}")
             return None
         
+    def init_database(self, conn):
+        """ 
+        conn = self.connect_database()
+        if not conn:
+            print("Failed to connect to database.")
+            return 
+        """
+        cursor = conn.cursor()
+
+        print("Initializing database schema...")
+        try: 
+
+            for table_name, columns in tables_structures.items():
+                column_defs = []
+
+                for col_name, col_def in columns.items():
+                    if col_name == "PRIMARY KEY":
+                        column_defs.append(f"{col_name} {col_def}")
+                    else:
+                        column_defs.append(f"{col_name} {col_def}")
+
+                createTable_query = f"CREATE TABLE IF NOT EXISTS {table_name} ({', '.join(column_defs)});"
+
+                cursor.execute(createTable_query)
+                conn.commit()
+                print(f"Table '{table_name}' is ready!")
+            
+        #    cursor.execute("""
+        #        CREATE TABLE IF NOT EXISTS devices (
+        #                device_id SERIAL PRIMARY KEY,
+        #                device_code VARCHAR(50) UNIQUE NOT NULL,
+        #                device_type TEXT NOT NULL,
+        #                location TEXT,
+        #                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        #            )
+        #        """)
+        #    
+        #    cursor.execute("""
+        #        CREATE TABLE IF NOT EXISTS sensors (
+        #                sensor_id SERIAL PRIMARY KEY,
+        #                device_id INT NOT NULL REFERENCES devices(device_id) ON DELETE CASCADE,
+        #                sensor_code VARCHAR(50) NOT NULL,
+        #                measurement_type TEXT NOT NULL,
+        #                unit TEXT NOT NULL,
+        #                depth_cm INT,
+        #                extras JSONB,
+        #                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        #            )
+        #        """)
+
+
+        except Exception as e:
+            print(f"Error creating devices table: {e}")
+            self.conn.rollback()
+            return
+        finally:
+            cursor.close()
+            print("Database initialization complete.")
     
-    def checkTable_existence(self, table_name):
-        if not self.cursor:
-            raise Exception("connection to db doesnt exist!")
+
+    def register_device(self, 
+                        device_code,
+                        device_type):
         
+        query = """
+            INSERT INTO devices (device_code, device_type)
+            VALUES (%s, %s)
+            ON CONFLICT (device_code) DO UPDATE SET device_type = EXCLUDED.device_type
+            RETURNING device_id;
+        """
         try:
-            self.cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables
-                    WHERE table_schema = 'public'
-                    AND table_name = %s                
-                );
-            """,(table_name, ))
+            self.cursor.execute(query, (device_code, device_type))
+            device_id = self.cursor.fetchone()[0]
+            self.conn.commit()
+            print("Data inserted successfully.")
+            return device_id
+        except postgres.Error as e:
+            print(f"Error inserting data: {e}")
+            self.conn.rollback()
+            return None
+    
+    def register_sensor(self,
+                        device_id,
+                        sensor_code,
+                        measurement_type,
+                        unit,
+                        depth_cm=None,
+                        extras=None):
+        
+        extras_json = json.dumps(extras) if extras else None
+        query = """
+            INSERT INTO sensors (device_id, sensor_code, measurement_type, unit, depth_cm, extras)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (device_id, sensor_code) 
+            DO UPDATE SET measurement_type = EXCLUDED.measurement_type
+            RETURNING sensor_id;
+        """
+        try:
+            self.cursor.execute(query, (device_id, 
+                                        sensor_code, 
+                                        measurement_type, 
+                                        unit, 
+                                        depth_cm, 
+                                        extras_json))
+            sensor_id = self.cursor.fetchone()[0]
+            self.conn.commit()
 
-            exists = self.cursor.fetchone()[0]
-            if(exists):
-                print(f"{table_name} exists!")
-            else:
-                print(f"{table_name} doesnt exist!")
-                create_table(table_name)
-
-            return exists
-        except Exception as e:
-            print(f"Error while checking table '{table_name}': {e}")
-            raise e
+            print("Sensor registered successfully.")
+            return sensor_id
+        except postgres.Error as e:
+            print(f"Error registering sensor: {e}")
+            self.conn.rollback()
+            return None
     
 
-    def create_table(self, table_name):
-        try:
-            print("Create table")
-            self.cursor.execute("""
-                CREATE TABLE %s (
-                    
-                )
-            """)
-        except Exception as e:
-            print(f"Error with creating table '{table_name}': {e}")
-            raise e
+    
+    def close_connection(connection):
+        if connection:
+            connection.close()
+            print("Database connection closed.")
+
+
+    
