@@ -13,7 +13,7 @@ class DatabaseManager:
         try:
             self.conn = postgres.connect(**db_config)
             self.cursor = self.conn.cursor()
-            print("Database connection established.")
+            #print("Database connection established.")
             return self.conn
         except postgres.Error as e:
             print(f"Error connecting to database: {e}")
@@ -28,7 +28,7 @@ class DatabaseManager:
         """
         cursor = conn.cursor()
 
-        print("Initializing database schema...")
+        #print("Initializing database schema...")
         try: 
 
             for table_name, columns in tables_structures.items():
@@ -44,7 +44,7 @@ class DatabaseManager:
 
                 cursor.execute(createTable_query)
                 conn.commit()
-                print(f"Table '{table_name}' is ready!")
+                #print(f"Table '{table_name}' is ready!")
             
         #    cursor.execute("""
         #        CREATE TABLE IF NOT EXISTS devices (
@@ -93,7 +93,7 @@ class DatabaseManager:
             self.cursor.execute(query, (device_code, device_type))
             device_id = self.cursor.fetchone()[0]
             self.conn.commit()
-            print("Data inserted successfully.")
+            #print("Data inserted successfully.")
             return device_id
         except postgres.Error as e:
             print(f"Error inserting data: {e}")
@@ -126,7 +126,7 @@ class DatabaseManager:
             sensor_id = self.cursor.fetchone()[0]
             self.conn.commit()
 
-            print("Sensor registered successfully.")
+            #print("Sensor registered successfully.")
             return sensor_id
         except postgres.Error as e:
             print(f"Error registering sensor: {e}")
@@ -135,9 +135,9 @@ class DatabaseManager:
     
 
     
-    def close_connection(connection):
-        if connection:
-            connection.close()
+    def close_connection(self):
+        if self.conn:
+            self.conn.close()
             print("Database connection closed.")
 
 

@@ -13,12 +13,11 @@ class Device:
     def __init__(self, device_name, device_type):
         self.device_code = device_name
         self.device_type = device_type
-        self.topic = f"device/{self.device_code}"
         self.sensors = []
 
         self.db_id = None
 
-        self.dataset = DeviceDataset(self.device_code)
+        #self.dataset = DeviceDataset(self.device_code)
 
         self.mqtt_publisher = MQTTPublisher()
 
@@ -42,15 +41,10 @@ class Device:
                 depth_cm=sensor.get("depth_cm"),
                 extras=sensor.get("extras") 
             )
+
             sensor['db_id'] = sensor_id
         
-    
-
-
-
-
-
-
+    """ 
     def start_simulation(self):
         print(f"[SIM START] {self.device_code}")
 
@@ -74,11 +68,7 @@ class Device:
             self.mqtt_publisher.send(self.topic, json.dumps(payload))
 
             time.sleep(1)
-
-        
-
-
-    
+    """
 
     def _build_sensor_name(self, 
                             measurement: str,

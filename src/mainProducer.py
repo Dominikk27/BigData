@@ -75,6 +75,7 @@ def start_IoT_simulation(DEVICE_COUNT, BROKER, TOPIC, DATASET_PATH):
         
     print("All Devices finished jobs")
 
+""" 
 def main():
     start_IoT_simulation(
         5, 
@@ -86,3 +87,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ """

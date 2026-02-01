@@ -1,17 +1,5 @@
-from pyspark.sql.types import StructType, StructField, FloatType, IntegerType, StringType
+from pyspark.sql.types import StructType, StructField, FloatType, IntegerType, StringType, TimestampType
 
-
-# DEFINE SENSOR DATA STRUCTURE
-SENSOR_DATA_STRUCT = {
-    "device_id": int,
-    "averageChlorophyll": float,
-    "heightRate": float,
-    "averageWeightWet": float,
-    "averageLeafArea": float,
-    "averageLeafCount": float,
-    "averageRootDiameter": float,
-    "averageDryWeight": float
-}
 
 # DEFINE SPARK DATA SCHEMA
 SPARK_SCHEMA_STRUCT = {
@@ -20,14 +8,9 @@ SPARK_SCHEMA_STRUCT = {
     str: StringType()
 }
 
-# DEFINE TABLE COLUMNS TO BE USED FROM CSV
-USE_COLS = [
-    "ID", 
-    "averageChlorophyll", 
-    "heightRate", 
-    "averageWeightWet", 
-    "averageLeafArea", 
-    "averageLeafCount", 
-    "averageRootDiameter", 
-    "averageDryWeight"
-]
+KAFKA_SENSOR_SCHEMA = StructType([
+    StructField("sensor_id", IntegerType(), True),
+    StructField("value", FloatType(), True),
+    StructField("timestamp", TimestampType(), True),
+    StructField("device_code", StringType(), True)
+])

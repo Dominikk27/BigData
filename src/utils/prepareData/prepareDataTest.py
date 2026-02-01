@@ -11,7 +11,6 @@ OUTPUT_DIR = "../../../dataset/preparedData"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def parse_sensor_metadata(col_name):
-    """Extrahuje metadáta z názvu stĺpca."""
     s = str(col_name).replace('\n', ' ').strip()
     s = re.sub(r'\s+', ' ', s)
 
@@ -33,6 +32,12 @@ def parse_sensor_metadata(col_name):
 
     is_ref = "reference" in s.lower() or "ref" in s.lower()
 
+    location = None
+    loc_match = re.search(r'\b(inside|outside)\b', s, re.IGNORECASE)
+    if loc_match:
+        location = loc_match.group(1).lower()
+
+
     clean_name = s
     prefixes = ["URB Lysimeter", "SSA 4 Schacht", "SSA 3 Lysimeter", "Weather Station"]
     for p in prefixes:
@@ -41,15 +46,20 @@ def parse_sensor_metadata(col_name):
     if unit: clean_name = clean_name.replace(unit, "")
     if depth and not "(5+)" in s: clean_name = clean_name.replace(f"{depth}cm", "")
     if index: clean_name = clean_name.replace(f"({index})", "")
+    if location: clean_name = re.sub(rf'\b{location}\b', '', clean_name, flags=re.IGNORECASE)
     clean_name = clean_name.replace("(5+)", "").replace("reference", "").replace("ref", "")
+
     
     clean_name = clean_name.strip().lower()
     clean_name = re.sub(r'[^a-z0-9]+', '_', clean_name).strip('_')
+
+
 
     return {
         "sensor_key": clean_name,
         "full_device_name": full_dev_name,
         "unit": unit,
+        "location": location,
         "depth_cm": depth,
         "index": index,
         "is_ref": is_ref
@@ -77,7 +87,7 @@ def process_file(file_path, output_dir):
                 df = pd.read_csv(file_path, sep="\t", engine='python', on_bad_lines='skip')
 
     except Exception as e:
-        print(f"  !! KRITICKÁ CHYBA: Súbor sa nepodarilo načítať: {e}")
+        print(f"ERROR: Súbor sa nepodarilo načítať: {e}")
         return
 
     if df is None or df.empty:
@@ -123,13 +133,14 @@ def process_file(file_path, output_dir):
                         "timestamp": ts_iso,
                         "full_device_name": meta["full_device_name"],
                         "device_id": dev_id,
-                        "sensor": meta["sensor_key"],
+                        "measurement_type": meta["sensor_key"],
                         "value": val,
                         "unit": meta["unit"],
+                        "location": meta["location"],
                         "depth_cm": meta["depth_cm"],
                         "index": meta["index"],
                         "status": str(status_val) if not pd.isna(status_val) else None,
-                        "is_ref": meta["is_ref"]
+                        "reference": meta["is_ref"]
                     }
                     
                     handles[dev_id].write(json.dumps(event, ensure_ascii=False) + '\n')
