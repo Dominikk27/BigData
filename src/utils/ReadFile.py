@@ -25,7 +25,6 @@ class DatasetManager:
 
         file_path = self.folder_path / f"{device_code}.jsonl"
 
-        print(f"TOTOT JE CESTA K DATASETU>>>>>>>> {file_path}")
         if not os.path.exists(file_path):
             print(f"Dataset file for device {device_code} not found at {file_path}")
             return None

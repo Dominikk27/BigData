@@ -38,7 +38,7 @@ def main():
     URB_Lysimeter.add_tension_sensor(None, "outside", True)
     
     URB_Lysimeter.add_level_sensor()
-    URB_Lysimeter.add_level_sensor(True)
+    URB_Lysimeter.add_level_sensor(None, None, True)
 
     URB_Lysimeter.add_percolation_sensor()
 

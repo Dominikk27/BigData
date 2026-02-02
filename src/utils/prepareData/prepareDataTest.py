@@ -139,7 +139,7 @@ def process_file(file_path, output_dir):
                         "location": meta["location"],
                         "depth_cm": meta["depth_cm"],
                         "index": meta["index"],
-                        "status": str(status_val) if not pd.isna(status_val) else None,
+                        "status": int(status_val) if not pd.isna(status_val) else None,
                         "reference": meta["is_ref"]
                     }
                     
