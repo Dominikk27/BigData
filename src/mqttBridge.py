@@ -1,26 +1,15 @@
+from MQTT import MQTTBridge
 
-from Kafka.TopicProducer import ProducerClient
-from MQTT import MQTTClient
 
-from Kafka.TopicConsumer import ConsumerClient
+#from Kafka.TopicProducer import ProducerClient
+#from Kafka.TopicConsumer import ConsumerClient
 
 def main():
-        
-    #KAFKA PRODUCER
-    kafka_producer = ProducerClient(
-        BROKERS="localhost:9094",
-        TOPIC="mqtt_topic"
-    )
-
-    # MQTT Topic Subscriber
-    mqttClient = MQTTClient(
-        broker="host.docker.internal",
-        topics=["test/topic"],
-        KAFKA_PRODUCER=kafka_producer
-
-    )
-    # Starting MQTT Topic Subscriber
-    mqttClient.start()
+    bridge = MQTTBridge(
+        mqtt_broker="host.docker.internal",
+        kafka_brokers="localhost:9094")
+    
+    bridge.start()
 
 if __name__ == "__main__":
     main()

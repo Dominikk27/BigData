@@ -1,4 +1,5 @@
 from typing import List
+import json
 
 import time
 import paho.mqtt.client as mqtt
@@ -13,28 +14,42 @@ class MQTTClient:
     def __init__(self, broker: str, topics: List[str], KAFKA_PRODUCER: ProducerClient):
         self.client = mqtt.Client()
         self.broker = broker
-        self.port = 1883
         self.topics = topics
+        self.port = 1883
         self.keep_alive = 20
         self.kafka_producer = KAFKA_PRODUCER
     
 
     def on_connect(self, client, userdata, flags, rc):
-        print("Connected with code:", rc)
-        for topic in self.topics:
-            client.subscribe(topic)
-            print(f"Subscribing topic: {topic}")
-
+        if rc == 0:
+            print(f"[MQTT CONNECTED] Broker: {self.broker}, result code: {rc}")
+            for topic in self.topics:
+                client.subscribe(topic)
+                print(f"[SUBSCRIBED] to topic: {topic}")
+        else:
+            print(f"[MQTT CONNECTION FAILED] Broker: {self.broker}, result code: {rc}")
 
 
     def on_message(self, client, userdata, msg):
-        payload = msg.payload.decode()
-        print(f"[RECIEVED] {msg.topic}: {msg.payload.decode()}")
+        try:
+            payload = msg.payload.decode()
 
-        self.kafka_producer.produceData(
-            key=msg.topic,
-            data=payload
-        )
+            full_topic = msg.topic.split('/')
+            if len(full_topic) >= 2:
+                device_id = full_topic[1]
+                kafka_topic = f"Device_{device_id}"
+                
+            print(f"[RECIEVED] {msg.topic}: {msg.payload.decode()}")
+            print(f"[FORWARDING TO KAFKA] Topic: {kafka_topic}")
+
+            self.kafka_producer.produceData(
+                key=device_id,
+                topic=kafka_topic,
+                data=json.loads(payload)
+            )
+        except Exception as e:
+            print(f"[MQTT MESSAGE ERROR] {e}")
+            return
 
 
     def start(self):
@@ -42,17 +57,8 @@ class MQTTClient:
         self.client.on_message = self.on_message
 
         self.client.connect(self.broker, self.port, self.keep_alive)
-        self.client.loop_start()
+        self.client.loop_forever()
 
-        try:
-            while True:
-                #selfclient.send("test/topic", "Hello MQTT")
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Closing session...")
-        finally:
-            self.client.loop_stop()
-            self.client.disconnect()
 
 
 """ if __name__ == "__main__":

@@ -23,7 +23,7 @@ class MQTTPublisher:
 
     def send(self, topic: str, message: str):
         self.client.publish(topic, message)
-        print(f"[SENT] {topic}: {message}")
+        #print(f"[SENT] {topic}: {message}")
 
 
 """ if __name__ == "__main__":

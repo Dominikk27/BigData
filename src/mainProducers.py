@@ -10,6 +10,12 @@ from utils.ReadFile import DatasetManager
 from Simulation.DeviceSimulation import DeviceSimulator
 
 
+from Kafka.TopicProducer import ProducerClient
+from MQTT import MQTTClient
+
+from Kafka.TopicConsumer import ConsumerClient
+
+
 #from utils.Database.databaseConfig import devices_list
 
 
