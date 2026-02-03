@@ -29,11 +29,7 @@ tables_structures = {
         "sensor_id": "INT NOT NULL REFERENCES sensors(sensor_id) ON DELETE CASCADE",
         "value": "DOUBLE PRECISION",
         "status": "INT",
-        "PRIMARY KEY": "(time, sensor_id)"
+        "PRIMARY KEY": "(time, sensor_id)",
+        "FOREIGN KEY": "(sensor_id) REFERENCES sensors(sensor_id) ON DELETE CASCADE"
     },
-    "test_table": {
-        "id": "SERIAL PRIMARY KEY",
-        "name": "TEXT NOT NULL",
-        "created_at": "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
-    }
 }

@@ -7,7 +7,7 @@ def main():
     
     kafkaConsumer = ConsumerClient(TOPICS=topics)
     try:
-        kafkaConsumer.consumeData()
+        kafkaConsumer.consumeData() 
     except Exception as e:
         print("Failed to create Kafka consumer:", e)
         return

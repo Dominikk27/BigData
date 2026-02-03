@@ -1,4 +1,6 @@
 import psycopg2 as postgres
+import time
+from datetime import datetime, timezone
 import json
 
 from utils.Database.databaseConfig import db_config, tables_structures
@@ -12,7 +14,7 @@ class DatabaseManager:
     def connect_database(self):
         try:
             self.conn = postgres.connect(**db_config)
-            self.cursor = self.conn.cursor()
+            cursor = self.conn.cursor()
             #print("Database connection established.")
             return self.conn
         except postgres.Error as e:
@@ -26,7 +28,7 @@ class DatabaseManager:
             print("Failed to connect to database.")
             return 
         """
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
 
         #print("Initializing database schema...")
         try: 
@@ -45,29 +47,6 @@ class DatabaseManager:
                 cursor.execute(createTable_query)
                 conn.commit()
                 #print(f"Table '{table_name}' is ready!")
-            
-        #    cursor.execute("""
-        #        CREATE TABLE IF NOT EXISTS devices (
-        #                device_id SERIAL PRIMARY KEY,
-        #                device_code VARCHAR(50) UNIQUE NOT NULL,
-        #                device_type TEXT NOT NULL,
-        #                location TEXT,
-        #                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        #            )
-        #        """)
-        #    
-        #    cursor.execute("""
-        #        CREATE TABLE IF NOT EXISTS sensors (
-        #                sensor_id SERIAL PRIMARY KEY,
-        #                device_id INT NOT NULL REFERENCES devices(device_id) ON DELETE CASCADE,
-        #                sensor_code VARCHAR(50) NOT NULL,
-        #                measurement_type TEXT NOT NULL,
-        #                unit TEXT NOT NULL,
-        #                depth_cm INT,
-        #                extras JSONB,
-        #                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        #            )
-        #        """)
 
 
         except Exception as e:
@@ -83,6 +62,7 @@ class DatabaseManager:
                         device_code,
                         device_type):
         
+        cursor = self.conn.cursor()
         query = """
             INSERT INTO devices (device_code, device_type)
             VALUES (%s, %s)
@@ -90,8 +70,8 @@ class DatabaseManager:
             RETURNING device_id;
         """
         try:
-            self.cursor.execute(query, (device_code, device_type))
-            device_id = self.cursor.fetchone()[0]
+            cursor.execute(query, (device_code, device_type))
+            device_id = cursor.fetchone()[0]
             self.conn.commit()
             #print("Data inserted successfully.")
             return device_id
@@ -99,6 +79,9 @@ class DatabaseManager:
             print(f"Error inserting data: {e}")
             self.conn.rollback()
             return None
+        finally:
+            cursor.close()
+            print("Devices registration complete.")
     
     def register_sensor(self,
                         device_id,
@@ -108,6 +91,7 @@ class DatabaseManager:
                         depth_cm=None,
                         extras=None):
         
+        cursor = self.conn.cursor()
         extras_json = json.dumps(extras) if extras else None
         query = """
             INSERT INTO sensors (device_id, sensor_code, measurement_type, unit, depth_cm, extras)
@@ -117,13 +101,13 @@ class DatabaseManager:
             RETURNING sensor_id;
         """
         try:
-            self.cursor.execute(query, (device_id, 
-                                        sensor_code, 
-                                        measurement_type, 
-                                        unit, 
-                                        depth_cm, 
-                                        extras_json))
-            sensor_id = self.cursor.fetchone()[0]
+            cursor.execute(query, (device_id, 
+                                    sensor_code, 
+                                    measurement_type, 
+                                    unit, 
+                                    depth_cm, 
+                                    extras_json))
+            sensor_id = cursor.fetchone()[0]
             self.conn.commit()
 
             #print("Sensor registered successfully.")
@@ -132,6 +116,9 @@ class DatabaseManager:
             print(f"Error registering sensor: {e}")
             self.conn.rollback()
             return None
+        finally:
+            cursor.close()
+            print("Sensor registration complete.")
     
 
     
@@ -142,3 +129,43 @@ class DatabaseManager:
 
 
     
+
+    def insert_measurement(self,
+                           timestamp,
+                           measurements):
+        
+        if isinstance(timestamp, (int, float)):
+            transformed_timestamp = self.transform_timestamp(timestamp)
+        else:
+            transformed_timestamp = timestamp
+ 
+        if self.conn is None:
+            print("No database connection.")
+            return
+        
+        cursor = self.conn.cursor()
+        query = """
+            INSERT INTO measurements (time, sensor_id, value, status)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (time, sensor_id) DO NOTHING;
+        """
+        try:
+            for m in measurements:
+                cursor.execute(query, (transformed_timestamp, 
+                                       m['sensor_id'], 
+                                       m['value'], 
+                                       m.get('status', 0)
+                                    ))
+            self.conn.commit()
+            #print("Measurements inserted successfully.")
+        except Exception as e:
+            print(f"Error inserting measurement: {e}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+            #print("Measurement insertion complete.")
+        
+
+    def transform_timestamp(self, timestamp):
+        date_time = datetime.fromtimestamp(timestamp / 1000.0, tz=timezone.utc)
+        return date_time

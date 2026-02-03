@@ -1,0 +1,49 @@
+{
+  "device_code" : "URB",
+  "measurements" : [ {
+    "sensor_id" : 1,
+    "value" : 45.849998,
+    "status" : 0
+  }, {
+    "sensor_id" : 2,
+    "value" : 41.459999,
+    "status" : 0
+  }, {
+    "sensor_id" : 3,
+    "value" : 45.869999,
+    "status" : 0
+  }, {
+    "sensor_id" : 8,
+    "value" : 45.860001,
+    "status" : 0
+  }, {
+    "sensor_id" : 4,
+    "value" : 63.799999,
+    "status" : 0
+  }, {
+    "sensor_id" : 412,
+    "value" : 83.43,
+    "status" : 0
+  }, {
+    "sensor_id" : 6,
+    "value" : 121.790001,
+    "status" : 0
+  }, {
+    "sensor_id" : 9,
+    "value" : 9.97,
+    "status" : 0
+  }, {
+    "sensor_id" : 11,
+    "value" : 19.35,
+    "status" : 0
+  }, {
+    "sensor_id" : 10,
+    "value" : 19.9,
+    "status" : 0
+  }, {
+    "sensor_id" : 7,
+    "value" : 0.0,
+    "status" : 0
+  } ],
+  "timestamp" : "2013-07-01T00:30:00"
+}

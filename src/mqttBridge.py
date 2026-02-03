@@ -1,9 +1,5 @@
 from MQTT import MQTTBridge
 
-
-#from Kafka.TopicProducer import ProducerClient
-#from Kafka.TopicConsumer import ConsumerClient
-
 def main():
     bridge = MQTTBridge(
         mqtt_broker="host.docker.internal",
