@@ -5,7 +5,7 @@ from pyspark.sql.functions import from_json, col
 
 from utils.DataStruct import SENSOR_DATA_STRUCT, SPARK_SCHEMA_STRUCT
 
-
+#MASTER_IP, MASTER_PORT, KAFKA_BROKER, appName, TOPIC_NAME
 class SparkStream:
     def __init__(self, MASTER_IP, MASTER_PORT, KAFKA_BROKER, appName, TOPIC_NAME):
         self.masterURL = MASTER_IP
@@ -14,6 +14,7 @@ class SparkStream:
         self.kafkaBroker = KAFKA_BROKER
         self.topicName = TOPIC_NAME
         self.sparkSession = None
+        print("Init Spark")
     
 
     # CREATE SPARK SESSION
@@ -103,21 +104,3 @@ class SparkStream:
         
         return query
         
-
-
-
-""" def main():
-    print("Hello World Stream!")
-    spark = SparkStream("spark://host.docker.internal",7077,"localhost:9094","testApp","mqtt_topic")
-    spark.buildSparkSession()
-    spark.createDataStruct()
-
-    dataFrame = spark.readDataFrame()
-    parsed_data = spark.processStream(dataFrame)
-
-    query = spark.writeStream(parsed_data)
-    query.awaitTermination()
-    
-
-if __name__ == "__main__":
-    main() """

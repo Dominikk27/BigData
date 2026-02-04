@@ -30,6 +30,12 @@ tables_structures = {
         "value": "DOUBLE PRECISION",
         "status": "INT",
         "PRIMARY KEY": "(time, sensor_id)",
-        "FOREIGN KEY": "(sensor_id) REFERENCES sensors(sensor_id) ON DELETE CASCADE"
     },
+    "measurements_analytics": {
+        "time": "TIMESTAMPTZ NOT NULL",
+        "sensor_id": "INT NOT NULL REFERENCES sensors(sensor_id) ON DELETE CASCADE",
+        "original_value": "DOUBLE PRECISION",
+        "moving_avg": "DOUBLE PRECISION",
+        "PRIMARY KEY": "(time, sensor_id)",
+    }
 }

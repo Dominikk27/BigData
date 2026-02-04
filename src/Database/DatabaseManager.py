@@ -128,8 +128,6 @@ class DatabaseManager:
             print("Database connection closed.")
 
 
-    
-
     def insert_measurement(self,
                            timestamp,
                            measurements):
