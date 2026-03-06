@@ -162,7 +162,43 @@ class DatabaseManager:
         finally:
             cursor.close()
             #print("Measurement insertion complete.")
+    
+
+    def insert_analysed_data(self, dataFrame, batchId):
+        if self.conn is None:
+            print("No database connection.")
+            return
         
+        cursor = self.conn.cursor()
+        query = """
+            INSERT INTO measurements_analytics (window_start, window_end, sensor_id, device_code, min, max, avg)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (window_start, window_end, sensor_id) DO UPDATE SET
+            min = EXCLUDED.min,
+            max = EXCLUDED.max,
+            avg = EXCLUDED.avg
+        """
+        try:
+            rows = dataFrame.collect()
+            data_to_insert = [
+                (
+                    r['window_start'], r['window_end'], 
+                    r['sensor_id'], r['device_code'],
+                    r['min'], r['max'], r['avg']
+                )
+                for r in rows
+            ]
+
+            if data_to_insert:
+                cursor.executemany(query, data_to_insert)
+                self.conn.commit()
+                #print("Analysed data inserted successfully.")
+        except Exception as e:
+            print(f"Error inserting analysed data: {e}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+            #print("Analysed data insertion complete.")
 
     def transform_timestamp(self, timestamp):
         date_time = datetime.fromtimestamp(timestamp / 1000.0, tz=timezone.utc)

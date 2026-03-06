@@ -21,9 +21,10 @@ class DeviceSimulator:
             )
 
             sensors_map[key] = sensor.get('db_id')
-            print("=============================================")
-            print(f"[SIMULATION] Mapa senzorov pre zariadenie {device.device_code}: {sensors_map}")
-            print("=============================================")
+        print("=============================================")
+        print(f"[SIMULATION] Mapa senzorov pre zariadenie {device.device_code}: {sensors_map}")
+        print("=============================================")
+        
 
         if not dataset:
             print(f"No dataset available for device {device.device_code}. Simulation aborted.")

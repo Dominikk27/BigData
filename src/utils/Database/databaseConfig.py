@@ -32,10 +32,13 @@ tables_structures = {
         "PRIMARY KEY": "(time, sensor_id)",
     },
     "measurements_analytics": {
-        "time": "TIMESTAMPTZ NOT NULL",
+        "window_start": "TIMESTAMPTZ NOT NULL",
+        "window_end": "TIMESTAMPTZ NOT NULL",
         "sensor_id": "INT NOT NULL REFERENCES sensors(sensor_id) ON DELETE CASCADE",
-        "original_value": "DOUBLE PRECISION",
-        "moving_avg": "DOUBLE PRECISION",
-        "PRIMARY KEY": "(time, sensor_id)",
+        "device_code": "VARCHAR(50)",
+        "min": "DOUBLE PRECISION",
+        "max": "DOUBLE PRECISION",
+        "avg": "DOUBLE PRECISION",
+        "PRIMARY KEY": "(window_start, window_end, sensor_id)",
     }
 }

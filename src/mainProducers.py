@@ -48,9 +48,9 @@ def main():
 
     URB_Lysimeter.add_percolation_sensor()
 
-    URB_Lysimeter.add_discharge_sensor(1)
+    URB_Lysimeter.add_discharge_sensor(1, None, None, False)
 
-    URB_Lysimeter.add_vacuum_sensor(None)
+    URB_Lysimeter.add_vacuum_sensor(None, None, False)
 
     URB_Lysimeter.add_temperature_control_sensor()
     URB_Lysimeter.add_temperature_sensor(None, "inside")
@@ -79,11 +79,12 @@ def main():
 
         device_code = device.device_code.strip().lower().split('_')[0]
         device_code = device.device_code.lower()
+        
         data = datasetManager.load_dataset(device_code)
-        if not data:
-            print(f"[MAIN] No dataset for device {device.device_code}, skipping simulation.")
-            break
         thread_data_map[device_code] = data
+    if not data:
+        print(f"[MAIN] No dataset for device {device.device_code}, skipping simulation.")
+        return
     
     threads = []
     for device in devices:
