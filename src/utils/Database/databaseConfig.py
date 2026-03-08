@@ -20,7 +20,9 @@ tables_structures = {
         "measurement_type": "TEXT NOT NULL",
         "unit": "TEXT NOT NULL",
         "depth_cm": "INT",
-        "extras": "JSONB",
+        "location": "TEXT",
+        "index": "INT",
+        "reference": "BOOLEAN",
         "created_at": "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
         "UNIQUE": "(device_id, sensor_code)"
     },

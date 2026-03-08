@@ -89,13 +89,14 @@ class DatabaseManager:
                         measurement_type,
                         unit,
                         depth_cm=None,
-                        extras=None):
+                        location=None,
+                        index=None,
+                        reference=False,):
         
         cursor = self.conn.cursor()
-        extras_json = json.dumps(extras) if extras else None
         query = """
-            INSERT INTO sensors (device_id, sensor_code, measurement_type, unit, depth_cm, extras)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO sensors (device_id, sensor_code, measurement_type, unit, depth_cm, location, index, reference)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (device_id, sensor_code) 
             DO UPDATE SET measurement_type = EXCLUDED.measurement_type
             RETURNING sensor_id;
@@ -106,7 +107,9 @@ class DatabaseManager:
                                     measurement_type, 
                                     unit, 
                                     depth_cm, 
-                                    extras_json))
+                                    location,
+                                    index,
+                                    reference))
             sensor_id = cursor.fetchone()[0]
             self.conn.commit()
 

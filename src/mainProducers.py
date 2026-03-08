@@ -4,7 +4,7 @@ import re
 
 
 from Database.DatabaseManager import DatabaseManager
-from Database.Devices import LysimeterDevice
+from Database.DevicesNew import SSA3Lysimeter, URBLysimeter, WeatherStation, SSA4Schacht    
 from MQTT import MQTTPublisher
 from utils.ReadFile import DatasetManager
 from Simulation.DeviceSimulation import DeviceSimulator
@@ -37,28 +37,57 @@ def main():
 
     devices = []
 
+    URB_Lysimeter = URBLysimeter()
+    SSA3_Lysimeter = SSA3Lysimeter()
+
     
-    URB_Lysimeter = LysimeterDevice("URB")
-    URB_Lysimeter.add_tension_sensor(None, "outside", False)
-    URB_Lysimeter.add_tension_sensor(None, "inside", False)
-    URB_Lysimeter.add_tension_sensor(None, "outside", True)
-    
-    URB_Lysimeter.add_level_sensor()
-    URB_Lysimeter.add_level_sensor(None, None, True)
+    """ URB_Lysimeter = LysimeterDevice("URB")
+        URB_Lysimeter.add_tension_sensor(None, "outside", False)
+        URB_Lysimeter.add_tension_sensor(None, "inside", False)
+        URB_Lysimeter.add_tension_sensor(None, "outside", True)
+        
+        URB_Lysimeter.add_level_sensor()
+        URB_Lysimeter.add_level_sensor(None, None, True)
 
-    URB_Lysimeter.add_percolation_sensor()
+        URB_Lysimeter.add_percolation_sensor()
 
-    URB_Lysimeter.add_discharge_sensor(1, None, None, False)
+        URB_Lysimeter.add_discharge_sensor(1, None, None, False)
 
-    URB_Lysimeter.add_vacuum_sensor(None, None, False)
+        URB_Lysimeter.add_vacuum_sensor(None, None, False)
 
-    URB_Lysimeter.add_temperature_control_sensor()
-    URB_Lysimeter.add_temperature_sensor(None, "inside")
-    URB_Lysimeter.add_temperature_sensor(None, "outside")
+        URB_Lysimeter.add_temperature_control_sensor()
+        URB_Lysimeter.add_temperature_sensor(None, "inside")
+        URB_Lysimeter.add_temperature_sensor(None, "outside")
+
+
+        SSA3_Lysimeter = LysimeterDevice("SSA3")
+        SSA3_Lysimeter.add_tension_sensor(30, None, False)
+        SSA3_Lysimeter.add_tension_sensor(75, None, False)
+        SSA3_Lysimeter.add_tension_sensor(120, None, False)
+        
+        SSA3_Lysimeter.add_vacuum_sensor(30, None, False)
+        SSA3_Lysimeter.add_vacuum_sensor(75, None, False)
+        SSA3_Lysimeter.add_vacuum_sensor(120, None, False)
+
+        SSA3_Lysimeter.add_ump_sensor(30, None, False)
+        SSA3_Lysimeter.add_ump_sensor(75, None, False)
+        SSA3_Lysimeter.add_ump_sensor(120, None, False)
+        
+        SSA3_Lysimeter.add_temperature_sensor(30, None, False)
+        SSA3_Lysimeter.add_temperature_sensor(75, None, False)
+        SSA3_Lysimeter.add_temperature_sensor(120, None, False)
+
+        SSA3_Lysimeter.add_ec_sensor(30, None, False)
+        SSA3_Lysimeter.add_ec_sensor(75, None, False)
+        SSA3_Lysimeter.add_ec_sensor(120, None, False)
+
+        SSA3_Lysimeter.add_battery_sensor(None, None, False)
+        SSA3_Lysimeter.add_scale_sensor(1, None, None, False)
+    """
 
     devices.append(URB_Lysimeter)
-
-    urb_dataset = datasetManager.load_dataset("URB")
+    devices.append(SSA3_Lysimeter)
+    #urb_dataset = datasetManager.load_dataset("URB")
 
 
     """     
@@ -81,17 +110,21 @@ def main():
         device_code = device.device_code.lower()
         
         data = datasetManager.load_dataset(device_code)
-        thread_data_map[device_code] = data
-    if not data:
-        print(f"[MAIN] No dataset for device {device.device_code}, skipping simulation.")
-        return
+        if data:
+            thread_data_map[device_code] = data
+        else:
+
+            print(f"[MAIN] No dataset for device {device.device_code}, skipping simulation.")
+            return
     
     threads = []
     for device in devices:
-        if device_code in thread_data_map:
+        current_device_code = device.device_code.lower()
+
+        if current_device_code in thread_data_map:
             t = threading.Thread(
                 target=simulator.start_simulation,
-                args=(device, thread_data_map[device_code], 1, stop_event)
+                args=(device, thread_data_map[current_device_code], 1, stop_event)
             )
             threads.append(t)
             t.start()

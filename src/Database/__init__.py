@@ -1,13 +1,14 @@
 from .DatabaseManager import DatabaseManager
-from .Devices import Device, LysimeterDevice, WeatherDevice, SchachtDevice
+from .DevicesNew import Device, URBLysimeter, SSA3Lysimeter, SSA4Schacht, WeatherStation
 from .Dataset import DeviceDataset
 
 __all__ = (
     "DatabaseManager",
     "DeviceDataset"
     "Device",
-    "LysimeterDevice",
-    "WeatherDevice",
-    "SchachtDevice",
+    "URBLysimeter",
+    "SSA3Lysimeter",
+    "WeatherStation",
+    "SSA4Schacht",
 
 )

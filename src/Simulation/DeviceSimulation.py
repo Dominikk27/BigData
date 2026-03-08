@@ -15,9 +15,9 @@ class DeviceSimulator:
             key = self.create_sensor_key(
                 sensor['measurement_type'],
                 sensor.get('depth_cm'),
-                extras.get('location'),
-                extras.get('index'),
-                extras.get('reference', False)
+                sensor.get('location'),
+                sensor.get('index'),
+                sensor.get('reference', False)
             )
 
             sensors_map[key] = sensor.get('db_id')
@@ -56,6 +56,7 @@ class DeviceSimulator:
                 )
 
                 sensor_id = sensors_map.get(sensor_key)
+                #print("sensor_key:", sensor_key, "sensor_id:", sensor_id)
                 if not sensor_id:
                     print(f"Sensor not found for key {sensor_key} in device {device.device_code}. Skipping record.")
                     continue

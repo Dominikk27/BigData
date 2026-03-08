@@ -10,6 +10,29 @@ from Database.Dataset import DeviceDataset
 # DEVICES
 #===========================================
 class Device:
+    
+    UNIT_MAP = {
+        "tension": "kPa",
+        "vacuum": "kPa",
+        "level": "cm",
+        "percolation_pump": "mV",
+        "temperature_control": "mV",
+        "temperature": "degC",
+        "discharge": "l", 
+        "ec": "mS/cm",
+        "ump": "%",
+        "battery": "V",
+        "scale": "kg",
+        "humidity": "%",
+        "air_pressure": "hPa",
+        "wind_speed": "m/s",
+        "wind_direction": "deg",     
+        "radiation": "W/qm",
+        "air_temperature": "degC",
+        "precipitation": "mm",
+        "temperature_plus5": "degC"
+    }
+    
     def __init__(self, device_name, device_type):
         self.device_code = device_name
         self.device_type = device_type
@@ -19,7 +42,24 @@ class Device:
 
         #self.dataset = DeviceDataset(self.device_code)
 
-        self.mqtt_publisher = MQTTPublisher()
+    def add_sensor(self, m_type, depth_cm=None, location=None, reference=False, index=None):
+        unit = self.UNIT_MAP.get(m_type, "unknown")
+
+        parts = [self.device_code, self.device_type, m_type]
+        if depth_cm:
+            parts.append(str(depth_cm))
+        if location:
+            parts.append(location)
+        if reference:
+            parts.append("ref")
+        sensor_code = "_".join(parts).lower()
+
+        self.sensors.append({
+            "sensor_code": sensor_code,
+            "measurement_type": m_type,
+            "unit": unit,
+            "depth_cm": depth_cm})
+        
 
 
     ###############################################
@@ -38,37 +78,11 @@ class Device:
                 sensor_code=sensor["sensor_code"],
                 measurement_type=sensor["measurement_type"],
                 unit=sensor["unit"],
-                depth_cm=sensor.get("depth_cm"),
+                depth_cm=sensor["depth_cm"],
                 extras=sensor.get("extras") 
             )
 
             sensor['db_id'] = sensor_id
-        
-    """ 
-    def start_simulation(self):
-        print(f"[SIM START] {self.device_code}")
-
-        for row in self.dataset.iter_rows():
-
-            payload = {
-                "device_id": self.device_code,
-                "device_type": self.device_type,
-                "sensor_code": row["sensor_type"],
-                "timestamp": row["timestamp"].isoformat(),
-                "value": round(float(row["value"]), 2),
-            }
-
-            # voliteľné polia
-            if "depth_cm" in row and not pd.isna(row["depth_cm"]):
-                payload["depth_cm"] = int(row["depth_cm"])
-
-            if "sensor_index" in row and not pd.isna(row["sensor_index"]):
-                payload["sensor_index"] = int(row["sensor_index"])
-
-            self.mqtt_publisher.send(self.topic, json.dumps(payload))
-
-            time.sleep(1)
-    """
 
     def _build_sensor_name(self, 
                             measurement: str,

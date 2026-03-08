@@ -20,11 +20,17 @@ class DeviceDataset:
             dataFrame["timestamp"] = pd.to_datetime(dataFrame["timestamp"])
             dataFrame["value"] = pd.to_numeric(dataFrame["value"], errors='coerce')
 
-            if "sensor_index" in dataFrame:
-                dataFrame["sensor_index"] = dataFrame["sensor_index"].astype("Int64")
+            if "index" in dataFrame:
+                dataFrame["index"] = dataFrame["index"].astype("Int64")
 
             if "depth_cm" in dataFrame:
                 dataFrame["depth_cm"] = dataFrame["depth_cm"].astype("Int64")
+
+            if "location" in dataFrame:
+                dataFrame["location"] = dataFrame["location"].astype(str)
+            
+            if "reference" in dataFrame:
+                dataFrame["reference"] = dataFrame["reference"].astype(bool)
 
             return dataFrame.sort_values("timestamp").reset_index(drop=True)
 
