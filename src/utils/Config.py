@@ -1,9 +1,6 @@
 import os
 
 
-
-
-
 class AppConfig:
 
     MQTT_BROKER = os.getenv("MQTT_BROKER", "host.docker.internal")

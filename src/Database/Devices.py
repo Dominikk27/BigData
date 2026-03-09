@@ -19,7 +19,8 @@ class Device:
         "radiation": "W/qm",
         "air_temperature": "degC",
         "precipitation": "mm",
-        "temperature_plus5": "degC"
+        "ump_ec": "mS/cm",
+        "ump_temperature": "degC"
     }
     
     def __init__(self, device_name, device_type):
@@ -125,13 +126,13 @@ class WeatherStation(Device):
         super().__init__("WeatherStation", "Weather")
         self.add_sensor("battery")
         self.add_sensor("ump", index=1)
-        self.add_sensor("ec", index=1)
-        self.add_sensor("temperature", index=1)
+        self.add_sensor("ump_ec", index=1)
+        self.add_sensor("ump_temperature", index=1)
         self.add_sensor("humidity")
         self.add_sensor("air_pressure")
         self.add_sensor("wind_speed")
         self.add_sensor("radiation")
         self.add_sensor("air_temperature")
-        self.add_sensor("temperature_plus5")
+        self.add_sensor("temperature", depth_cm=5) # TEMPERATURE WITH +5
         self.add_sensor("wind_direction")
         self.add_sensor("precipitation")

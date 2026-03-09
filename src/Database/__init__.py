@@ -1,5 +1,5 @@
 from .DatabaseManager import DatabaseManager
-from .DevicesNew import Device, URBLysimeter, SSA3Lysimeter, SSA4Schacht, WeatherStation
+from .Devices import Device, URBLysimeter, SSA3Lysimeter, SSA4Schacht, WeatherStation
 from .Dataset import DeviceDataset
 
 __all__ = (

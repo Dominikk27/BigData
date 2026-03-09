@@ -4,7 +4,7 @@ import re
 
 
 from Database.DatabaseManager import DatabaseManager
-from Database.DevicesNew import SSA3Lysimeter, URBLysimeter, WeatherStation, SSA4Schacht    
+from Database.Devices import SSA3Lysimeter, URBLysimeter, WeatherStation, SSA4Schacht    
 from MQTT import MQTTPublisher
 from utils.ReadFile import DatasetManager
 from Simulation.DeviceSimulation import DeviceSimulator
@@ -17,9 +17,6 @@ from Kafka.TopicConsumer import ConsumerClient
 
 
 #from utils.Database.databaseConfig import devices_list
-
-
-
 
 
 def main():
@@ -39,54 +36,15 @@ def main():
 
     URB_Lysimeter = URBLysimeter()
     SSA3_Lysimeter = SSA3Lysimeter()
+    SSA4_Schacht = SSA4Schacht()
+    Weather_Station = WeatherStation()
 
     
-    """ URB_Lysimeter = LysimeterDevice("URB")
-        URB_Lysimeter.add_tension_sensor(None, "outside", False)
-        URB_Lysimeter.add_tension_sensor(None, "inside", False)
-        URB_Lysimeter.add_tension_sensor(None, "outside", True)
-        
-        URB_Lysimeter.add_level_sensor()
-        URB_Lysimeter.add_level_sensor(None, None, True)
-
-        URB_Lysimeter.add_percolation_sensor()
-
-        URB_Lysimeter.add_discharge_sensor(1, None, None, False)
-
-        URB_Lysimeter.add_vacuum_sensor(None, None, False)
-
-        URB_Lysimeter.add_temperature_control_sensor()
-        URB_Lysimeter.add_temperature_sensor(None, "inside")
-        URB_Lysimeter.add_temperature_sensor(None, "outside")
-
-
-        SSA3_Lysimeter = LysimeterDevice("SSA3")
-        SSA3_Lysimeter.add_tension_sensor(30, None, False)
-        SSA3_Lysimeter.add_tension_sensor(75, None, False)
-        SSA3_Lysimeter.add_tension_sensor(120, None, False)
-        
-        SSA3_Lysimeter.add_vacuum_sensor(30, None, False)
-        SSA3_Lysimeter.add_vacuum_sensor(75, None, False)
-        SSA3_Lysimeter.add_vacuum_sensor(120, None, False)
-
-        SSA3_Lysimeter.add_ump_sensor(30, None, False)
-        SSA3_Lysimeter.add_ump_sensor(75, None, False)
-        SSA3_Lysimeter.add_ump_sensor(120, None, False)
-        
-        SSA3_Lysimeter.add_temperature_sensor(30, None, False)
-        SSA3_Lysimeter.add_temperature_sensor(75, None, False)
-        SSA3_Lysimeter.add_temperature_sensor(120, None, False)
-
-        SSA3_Lysimeter.add_ec_sensor(30, None, False)
-        SSA3_Lysimeter.add_ec_sensor(75, None, False)
-        SSA3_Lysimeter.add_ec_sensor(120, None, False)
-
-        SSA3_Lysimeter.add_battery_sensor(None, None, False)
-        SSA3_Lysimeter.add_scale_sensor(1, None, None, False)
-    """
-
     devices.append(URB_Lysimeter)
     devices.append(SSA3_Lysimeter)
+    devices.append(SSA4_Schacht)
+    devices.append(Weather_Station)
+
     #urb_dataset = datasetManager.load_dataset("URB")
 
 
